@@ -1,9 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import HomePage from "./pages/Home"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import HomePage from "./pages/HomePage"
 import CreateRoom from "./pages/CreateRoom"
 import JoinRoom from "./pages/JoinRoom"
-import Room from "./pages/Room"
-import Winner from "./pages/winner"
+import AdminPage from "./pages/AdminPage"
+import PlayerPage from "./pages/PlayerPage"
 
 function App() {
   return (
@@ -12,12 +12,15 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/create" element={<CreateRoom />} />
         <Route path="/join" element={<JoinRoom />} />
-        <Route path="/room/:roomCode" element={<Room />} />
-        <Route path="/winner" element={<Winner />} />
+        <Route path="/admin/:roomId" element={<AdminPage />} />
+        <Route path="/player/:roomId" element={<PlayerPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   )
 }
 
 export default App
+
+
 
