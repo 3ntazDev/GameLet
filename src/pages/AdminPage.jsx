@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import LetterGrid from "../components/LetterGrid"
+import { Crown, Copy, Home, CheckCircle } from "lucide-react"
+import LetterGrid from "../components/LetterGrid" 
 import SharedButton from "../components/SharedButton"
 
 export default function AdminPage() {
@@ -12,13 +13,15 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [selectedLetter, setSelectedLetter] = useState(null)
   const [selectedTeam, setSelectedTeam] = useState("red")
+  const [lastClickedUser, setLastClickedUser] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     // Load room data from localStorage
     const roomData = localStorage.getItem(`room_${roomId}`)
 
     if (!roomData) {
-      alert("Room not found")
+      alert("الغرفة غير موجودة")
       navigate("/")
       return
     }
@@ -30,12 +33,16 @@ export default function AdminPage() {
     const interval = setInterval(() => {
       const updatedRoomData = localStorage.getItem(`room_${roomId}`)
       if (updatedRoomData) {
-        setRoom(JSON.parse(updatedRoomData))
+        const parsedData = JSON.parse(updatedRoomData)
+        setRoom(parsedData)
+        if (parsedData.lastClickedUser && parsedData.lastClickedUser !== lastClickedUser) {
+          setLastClickedUser(parsedData.lastClickedUser)
+        }
       }
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [roomId, navigate])
+  }, [roomId, navigate, lastClickedUser])
 
   const handleLetterClick = (letter) => {
     setSelectedLetter(letter)
@@ -68,9 +75,11 @@ export default function AdminPage() {
       buttonDisabled: true,
       buttonTimer: 5,
       lastButtonClickTime: new Date().toISOString(),
+      lastClickedUser: room.admin, // Admin clicked the button
     }
     localStorage.setItem(`room_${roomId}`, JSON.stringify(updatedRoom))
     setRoom(updatedRoom)
+    setLastClickedUser(room.admin)
 
     // Start countdown
     let timeLeft = 5
@@ -97,78 +106,130 @@ export default function AdminPage() {
     }, 1000)
   }
 
+  const copyRoomCode = () => {
+    navigator.clipboard.writeText(roomId)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
+        <div className="text-white text-xl">جاري التحميل...</div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800 p-4" dir="rtl">
+      <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-white/20">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Admin Room: {roomId}</h1>
-          <div className="text-sm bg-gray-200 px-3 py-1 rounded-full">
-            Room Code: <span className="font-bold">{roomId}</span>
+          <div className="flex items-center">
+            <Crown className="text-yellow-400 ml-2 animate-pulse" />
+            <h1 className="text-2xl font-bold text-white">لوحة المشرف</h1>
+          </div>
+
+          <button
+            onClick={() => navigate("/")}
+            className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white"
+          >
+            <Home size={18} />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center mb-6 bg-white/5 p-3 rounded-xl border border-white/10">
+          <div className="text-white">
+            رمز الغرفة: <span className="font-bold text-xl">{roomId}</span>
+          </div>
+          <button
+            onClick={copyRoomCode}
+            className="mr-3 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white"
+            title="نسخ الرمز"
+          >
+            {copied ? <CheckCircle size={18} className="text-green-400" /> : <Copy size={18} />}
+          </button>
+        </div>
+
+        {lastClickedUser && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-xl border border-yellow-500/30 text-center animate-bounce">
+            <p className="text-white text-lg">
+              <span className="font-bold">{lastClickedUser}</span> ضغط على الزر!
+            </p>
+          </div>
+        )}
+
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-4 text-white">شبكة الحروف</h2>
+          <div className="flex justify-center py-4">
+            <LetterGrid
+              letters={room.letterGrid}
+              onLetterClick={handleLetterClick}
+              selectedLetter={selectedLetter}
+              isAdmin={true}
+            />
           </div>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">Letter Grid</h2>
-          <LetterGrid
-            letters={room.letterGrid}
-            onLetterClick={handleLetterClick}
-            selectedLetter={selectedLetter}
-            isAdmin={true}
-          />
-        </div>
-
         {selectedLetter && (
-          <div className="mb-6 p-4 border border-gray-200 rounded-lg">
-            <h3 className="font-medium mb-2">
-              Selected Letter: <span className="font-bold text-xl">{selectedLetter}</span>
+          <div className="mb-6 p-4 bg-white/5 border border-white/20 rounded-xl">
+            <h3 className="font-medium mb-4 text-white text-center">
+              الحرف المختار:{" "}
+              <span className="font-bold text-2xl bg-white/10 px-3 py-1 rounded-lg ml-2">{selectedLetter}</span>
             </h3>
-            <div className="flex gap-4 mb-3">
+            <div className="flex gap-4 mb-5 justify-center flex-wrap">
               <button
-                className={`px-4 py-2 rounded-md ${
+                className={`px-5 py-3 rounded-xl transition-all duration-300 flex items-center ${
                   selectedTeam === "red"
-                    ? "bg-red-600 text-white ring-2 ring-offset-2 ring-red-600"
-                    : "bg-red-100 text-red-800 hover:bg-red-200"
+                    ? "bg-gradient-to-r from-red-600 to-red-800 text-white shadow-lg shadow-red-600/20"
+                    : "bg-red-500/30 text-white hover:bg-red-500/50"
                 }`}
                 onClick={() => handleTeamSelect("red")}
               >
-                Red Team
+                الفريق الأحمر
               </button>
               <button
-                className={`px-4 py-2 rounded-md ${
+                className={`px-5 py-3 rounded-xl transition-all duration-300 flex items-center ${
                   selectedTeam === "blue"
-                    ? "bg-blue-600 text-white ring-2 ring-offset-2 ring-blue-600"
-                    : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                    ? "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg shadow-blue-600/20"
+                    : "bg-blue-500/30 text-white hover:bg-blue-500/50"
                 }`}
                 onClick={() => handleTeamSelect("blue")}
               >
-                Blue Team
+                الفريق الأزرق
               </button>
               <button
-                className={`px-4 py-2 rounded-md ${
+                className={`px-5 py-3 rounded-xl transition-all duration-300 flex items-center ${
                   selectedTeam === "none"
-                    ? "bg-gray-600 text-white ring-2 ring-offset-2 ring-gray-600"
-                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    ? "bg-gradient-to-r from-gray-600 to-gray-800 text-white shadow-lg shadow-gray-600/20"
+                    : "bg-gray-500/30 text-white hover:bg-gray-500/50"
                 }`}
                 onClick={() => handleTeamSelect("none")}
               >
-                Clear
+                إزالة
               </button>
             </div>
-            <button
-              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              onClick={handleColorChange}
-            >
-              Apply Color
-            </button>
+            <div className="text-center">
+              <button
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-xl hover:from-green-700 hover:to-green-900 transition-all duration-300 shadow-lg shadow-green-600/20"
+                onClick={handleColorChange}
+              >
+                تطبيق اللون
+              </button>
+            </div>
           </div>
         )}
 
         <div className="mt-8">
-          <SharedButton disabled={room.buttonDisabled} timer={room.buttonTimer} onClick={handleButtonClick} />
+          <SharedButton
+            disabled={room.buttonDisabled}
+            timer={room.buttonTimer}
+            onClick={handleButtonClick}
+            userName={room.admin}
+          />
+        </div>
+
+        <div className="mt-8 text-center text-white/50 text-xs">
+          <p>تم التطوير بواسطة المبرمج فهد</p>
         </div>
       </div>
     </div>

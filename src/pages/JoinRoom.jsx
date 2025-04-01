@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { UserCircle, Hash, ArrowLeft, Shield, ShieldCheck } from "lucide-react"
 
 export default function JoinRoom() {
   const [roomCode, setRoomCode] = useState("")
@@ -12,12 +13,12 @@ export default function JoinRoom() {
 
   const joinRoom = () => {
     if (!userName.trim()) {
-      setError("Please enter your name")
+      setError("الرجاء إدخال اسمك")
       return
     }
 
     if (!roomCode.trim()) {
-      setError("Please enter a room code")
+      setError("الرجاء إدخال رمز الغرفة")
       return
     }
 
@@ -25,7 +26,7 @@ export default function JoinRoom() {
     const roomData = localStorage.getItem(`room_${roomCode}`)
 
     if (!roomData) {
-      setError("Room not found")
+      setError("الغرفة غير موجودة")
       return
     }
 
@@ -45,47 +46,87 @@ export default function JoinRoom() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-2xl font-semibold mb-8">Join a Room</h1>
-      <input
-        type="text"
-        value={roomCode}
-        onChange={(e) => setRoomCode(e.target.value)}
-        className="px-4 py-2 border border-gray-300 rounded-md mb-4 w-64"
-        placeholder="Room Code"
-      />
-      <input
-        type="text"
-        value={userName}
-        onChange={(e) => setUserName(e.target.value)}
-        className="px-4 py-2 border border-gray-300 rounded-md mb-4 w-64"
-        placeholder="Enter your name"
-      />
-      <div className="flex gap-4 mb-4">
+    <div
+      className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-purple-900 to-indigo-800 p-4"
+      dir="rtl"
+    >
+      <div className="relative bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white/20">
         <button
-          className={`px-6 py-3 text-lg font-medium text-white rounded-md transition duration-300 ${
-            team === "red" ? "bg-red-600 ring-2 ring-offset-2 ring-red-600" : "bg-red-500 hover:bg-red-600"
-          }`}
-          onClick={() => setTeam("red")}
+          onClick={() => navigate("/")}
+          className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
         >
-          Red Team
+          <ArrowLeft />
         </button>
-        <button
-          className={`px-6 py-3 text-lg font-medium text-white rounded-md transition duration-300 ${
-            team === "blue" ? "bg-blue-600 ring-2 ring-offset-2 ring-blue-600" : "bg-blue-500 hover:bg-blue-600"
-          }`}
-          onClick={() => setTeam("blue")}
-        >
-          Blue Team
-        </button>
+
+        <h1 className="text-3xl font-bold mb-8 text-white text-center">الانضمام للغرفة</h1>
+
+        <div className="space-y-5">
+          <div className="relative">
+            <Hash className="absolute right-3 top-3 text-white/50" />
+            <input
+              type="text"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value)}
+              className="px-4 py-3 pr-10 bg-white/10 border border-white/20 text-white rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-white/50 transition-all"
+              placeholder="رمز الغرفة"
+            />
+          </div>
+
+          <div className="relative">
+            <UserCircle className="absolute right-3 top-3 text-white/50" />
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="px-4 py-3 pr-10 bg-white/10 border border-white/20 text-white rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-white/50 transition-all"
+              placeholder="اسمك"
+            />
+          </div>
+
+          <div className="flex gap-4 mb-4">
+            <button
+              className={`flex-1 py-3 px-4 rounded-xl text-white font-medium transition-all duration-300 flex items-center justify-center ${
+                team === "red"
+                  ? "bg-gradient-to-r from-red-600 to-red-800 shadow-lg shadow-red-600/20"
+                  : "bg-red-500/30 hover:bg-red-500/50"
+              }`}
+              onClick={() => setTeam("red")}
+            >
+              <Shield className={`ml-2 ${team === "red" ? "animate-pulse" : ""}`} />
+              الفريق الأحمر
+            </button>
+            <button
+              className={`flex-1 py-3 px-4 rounded-xl text-white font-medium transition-all duration-300 flex items-center justify-center ${
+                team === "blue"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg shadow-blue-600/20"
+                  : "bg-blue-500/30 hover:bg-blue-500/50"
+              }`}
+              onClick={() => setTeam("blue")}
+            >
+              <Shield className={`ml-2 ${team === "blue" ? "animate-pulse" : ""}`} />
+              الفريق الأزرق
+            </button>
+          </div>
+
+          <button
+            className="w-full py-4 bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold rounded-xl shadow-lg hover:from-green-700 hover:to-green-900 transition-all duration-300 flex items-center justify-center group"
+            onClick={joinRoom}
+          >
+            <ShieldCheck className="ml-2 group-hover:scale-110 transition-transform duration-300" />
+            انضمام للغرفة
+          </button>
+
+          {error && (
+            <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-white text-center animate-pulse">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 text-center text-white/50 text-xs">
+          <p>تم التطوير بواسطة المبرمج فهد</p>
+        </div>
       </div>
-      <button
-        className="px-6 py-3 text-lg font-medium text-white bg-green-500 rounded-md hover:bg-green-600 transition duration-300 w-64"
-        onClick={joinRoom}
-      >
-        Join Room
-      </button>
-      {error && <p className="mt-4 text-red-500">{error}</p>}
     </div>
   )
 }
