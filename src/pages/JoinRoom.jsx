@@ -1,83 +1,92 @@
-import React, { useState } from 'react';
-import supabase from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+"use client"
 
-const JoinRoom = () => {
-  const [roomCode, setRoomCode] = useState('');
-  const [userName, setUserName] = useState('');
-  const [team, setTeam] = useState('red');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
-  const joinRoom = async () => {
-    if (!userName) {
-      alert("يرجى إدخال اسمك");
-      return;
+export default function JoinRoom() {
+  const [roomCode, setRoomCode] = useState("")
+  const [userName, setUserName] = useState("")
+  const [team, setTeam] = useState("red")
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
+
+  const joinRoom = () => {
+    if (!userName.trim()) {
+      setError("Please enter your name")
+      return
     }
 
-    const { data: room, error } = await supabase
-      .from('rooms')
-      .select('*')
-      .eq('room_code', roomCode)
-      .single();
-
-    if (error || !room) {
-      setError('الغرفة غير موجودة');
-      return;
+    if (!roomCode.trim()) {
+      setError("Please enter a room code")
+      return
     }
 
-    const { data, error: playerError } = await supabase
-      .from('players')
-      .insert([{ room_id: room.id, name: userName, team }]);
+    // Check if room exists in localStorage
+    const roomData = localStorage.getItem(`room_${roomCode}`)
 
-    if (playerError) {
-      setError('حدث خطأ أثناء الانضمام إلى الغرفة');
-      return;
+    if (!roomData) {
+      setError("Room not found")
+      return
     }
 
-    navigate(`/room/${roomCode}`);
-  };
+    // Room exists, add player to the room
+    const room = JSON.parse(roomData)
+
+    // Add player to room (in a real app, you'd store this in a database)
+    const player = {
+      name: userName,
+      team,
+      joinedAt: new Date().toISOString(),
+    }
+
+    // In a real app, you'd update the room with the new player
+    // For this demo, we'll just navigate to the player page
+    navigate(`/player/${roomCode}`)
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-2xl font-semibold mb-8">انضم إلى غرفة</h1>
+      <h1 className="text-2xl font-semibold mb-8">Join a Room</h1>
       <input
         type="text"
         value={roomCode}
         onChange={(e) => setRoomCode(e.target.value)}
-        className="px-4 py-2 border border-gray-300 rounded-md mb-4"
-        placeholder="رقم الغرفة"
+        className="px-4 py-2 border border-gray-300 rounded-md mb-4 w-64"
+        placeholder="Room Code"
       />
       <input
         type="text"
         value={userName}
         onChange={(e) => setUserName(e.target.value)}
-        className="px-4 py-2 border border-gray-300 rounded-md mb-4"
-        placeholder="أدخل اسمك"
+        className="px-4 py-2 border border-gray-300 rounded-md mb-4 w-64"
+        placeholder="Enter your name"
       />
-      <div className="flex gap-4">
+      <div className="flex gap-4 mb-4">
         <button
-          className="px-6 py-3 text-lg font-medium text-white bg-red-500 rounded-md hover:bg-red-600"
-          onClick={() => setTeam('red')}
+          className={`px-6 py-3 text-lg font-medium text-white rounded-md transition duration-300 ${
+            team === "red" ? "bg-red-600 ring-2 ring-offset-2 ring-red-600" : "bg-red-500 hover:bg-red-600"
+          }`}
+          onClick={() => setTeam("red")}
         >
-          فريق أحمر
+          Red Team
         </button>
         <button
-          className="px-6 py-3 text-lg font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600"
-          onClick={() => setTeam('blue')}
+          className={`px-6 py-3 text-lg font-medium text-white rounded-md transition duration-300 ${
+            team === "blue" ? "bg-blue-600 ring-2 ring-offset-2 ring-blue-600" : "bg-blue-500 hover:bg-blue-600"
+          }`}
+          onClick={() => setTeam("blue")}
         >
-          فريق أزرق
+          Blue Team
         </button>
       </div>
       <button
-        className="mt-4 px-6 py-3 text-lg font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600"
+        className="px-6 py-3 text-lg font-medium text-white bg-green-500 rounded-md hover:bg-green-600 transition duration-300 w-64"
         onClick={joinRoom}
       >
-        انضم إلى الغرفة
+        Join Room
       </button>
       {error && <p className="mt-4 text-red-500">{error}</p>}
     </div>
-  );
-};
+  )
+}
 
-export default JoinRoom;
